@@ -224,12 +224,12 @@ const ER   = 6.371;          // Earth radius in Three.js units (1 unit = 1000 km
 const MU   = 3.986004418e5;  // km³/s²  (gravitational parameter)
 const J2K  = 946728000000;   // ms — J2000.0 epoch (Jan 1.5, 2000 UTC)
 
-// Category keys and display colours
+// Delete the old CATS block and replace it entirely with this:
 const CATS = {
-  P: { label:'PAYLOAD',      color:0x00ffcc, size:3.5, opacity:1.0  },
-  R: { label:'ROCKET BODY',  color:0xffaa22, size:2.5, opacity:0.9  },
-  D: { label:'DEBRIS',       color:0xff4422, size:1.6, opacity:0.55 },
-  U: { label:'UNKNOWN',      color:0x8866aa, size:2.0, opacity:0.65 }
+  P: { label:'PAYLOAD',      color:0x00ffcc, size:14.0, opacity:1.0  },
+  R: { label:'ROCKET BODY',  color:0xffaa22, size:10.0, opacity:0.9  },
+  D: { label:'DEBRIS',       color:0xff4422, size:6.0,  opacity:0.65 },
+  U: { label:'UNKNOWN',      color:0x8866aa, size:8.0,  opacity:0.75 }
 };
 
 // Map CelesTrak OBJECT_TYPE string → internal key
@@ -363,10 +363,9 @@ const glowTex=(function(){
   const ctx=c.getContext('2d');
   const g=ctx.createRadialGradient(32,32,0,32,32,32);
   g.addColorStop(0,'rgba(255,255,255,1)');
-  g.addColorStop(.2,'rgba(255,255,255,.85)');
-  g.addColorStop(.5,'rgba(255,255,255,.25)');
+  g.addColorStop(0.3,'rgba(255,255,255,1)');  // Solid core added
+  g.addColorStop(0.6,'rgba(255,255,255,0.6)'); // Stronger mid-glow
   g.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle=g; ctx.fillRect(0,0,64,64);
   return new THREE.CanvasTexture(c);
 })();
 
@@ -677,16 +676,21 @@ canvas.addEventListener('touchend',e=>{
   tStart=null;
 });
 
+// Delete the entire doClick function and replace it with this:
 function doClick(mx,my){
   const mouse=new THREE.Vector2((mx/window.innerWidth)*2-1, -(my/window.innerHeight)*2+1);
   raycaster.setFromCamera(mouse,camera);
+
+  // DYNAMIC HITBOX: Wider when zoomed out, tighter when zoomed in.
+  raycaster.params.Points.threshold = sph.r * 0.02; 
 
   let best=null, bestD=Infinity, bestIdx=-1, bestCat=null;
   Object.entries(catClouds).forEach(([k,cloud])=>{
     if(!cloud.points.visible) return;
     const hits=raycaster.intersectObject(cloud.points);
     if(hits.length){
-      const d=hits[0].distanceToRay ?? hits[0].distance;
+      // BUG FIX: Sort strictly by distance from the camera.
+      const d = hits[0].distance; 
       if(d<bestD){ bestD=d; bestIdx=hits[0].index; bestCat=k; best=cloud.arr[bestIdx]; }
     }
   });
