@@ -538,15 +538,18 @@ async function fetchData(url){
 }
 
 async function loadSatellites(){
-  const primaryUrl   = 'https://celestrak.org/CCSDS/bulk.php?c=active&f=json';
-  const proxyUrl     = 'https://corsproxy.io/?'+encodeURIComponent(primaryUrl);
+  const primaryUrl = 'https://celestrak.org/CCSDS/bulk.php?c=active&f=json';
+  const encodedUrl = encodeURIComponent(primaryUrl);
 
-  setLoad(10,'CONNECTING TO CELESTRAK.ORG...');
+  setLoad(10,'CONNECTING TO CELESTRAK...');
 
   let data=null;
+  // THE PROXY CASCADE
   const attempts=[
-    {url:primaryUrl,  label:'CELESTRAK DIRECT'},
-    {url:proxyUrl,    label:'CORS PROXY'}
+    {url: primaryUrl, label: 'CELESTRAK DIRECT'},
+    {url: 'https://api.allorigins.win/raw?url=' + encodedUrl, label: 'ALLORIGINS PROXY'},
+    {url: 'https://corsproxy.io/?' + encodedUrl, label: 'CORSPROXY.IO'},
+    {url: 'https://thingproxy.freeboard.io/fetch/' + primaryUrl, label: 'THINGPROXY'}
   ];
 
   for(const {url,label} of attempts){
