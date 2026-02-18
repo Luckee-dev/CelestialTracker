@@ -538,18 +538,14 @@ async function fetchData(url){
 }
 
 async function loadSatellites(){
-  const primaryUrl = 'https://celestrak.org/CCSDS/bulk.php?c=active&f=json';
-  const encodedUrl = encodeURIComponent(primaryUrl);
+  // Hardwired internal path. The dot-slash means "look in the current folder"
+  const primaryUrl = './active.json'; 
 
-  setLoad(10,'CONNECTING TO CELESTRAK...');
+  setLoad(10,'LOADING LOCAL TELEMETRY...');
 
   let data=null;
-  // THE PROXY CASCADE
   const attempts=[
-    {url: primaryUrl, label: 'CELESTRAK DIRECT'},
-    {url: 'https://api.allorigins.win/raw?url=' + encodedUrl, label: 'ALLORIGINS PROXY'},
-    {url: 'https://corsproxy.io/?' + encodedUrl, label: 'CORSPROXY.IO'},
-    {url: 'https://thingproxy.freeboard.io/fetch/' + primaryUrl, label: 'THINGPROXY'}
+    {url: primaryUrl, label: 'LOCAL DATA'}
   ];
 
   for(const {url,label} of attempts){
@@ -563,8 +559,8 @@ async function loadSatellites(){
     }
   }
 
-  if(!data||!Array.isArray(data)){
-    showError('Cannot reach CelesTrak. Ensure this file is served from a web server (e.g. GitHub Pages). CORS blocks direct file:// access.');
+if(!data||!Array.isArray(data)){
+    showError('Telemetry offline. Ensure active.json is uploaded to the exact same GitHub folder as this file, and ensure the file is not accidentally named active.json.txt.');
     return;
   }
 
